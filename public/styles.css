@@ -1,0 +1,78 @@
+/* public/styles.css */
+
+/* Define custom font using @font-face with .otf file */
+@font-face {
+    font-family: 'LatoLight';
+    src: url('/fonts/Lato-Light.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* Apply the Blanka font globally */
+body {
+    font-family: 'Blanka', sans-serif; /* Use Blanka font, fallback to sans-serif if not available */
+    background-color: #f4f7fc;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    width: 80%;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+h1, h2, h3 {
+    color: #4e73df;
+}
+
+form {
+    margin-bottom: 30px;
+}
+
+input[type="file"] {
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+button {
+    background-color: #4e73df;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+button:hover {
+    background-color: #2e59d9;
+}
+
+ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+ul li {
+    background-color: #f8f9fc;
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 5px;
+}
+
+pre {
+    background-color: #f7f7f7;
+    border: 1px solid #ccc;
+    padding: 15px;
+    border-radius: 5px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+}
