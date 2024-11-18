@@ -1,4 +1,3 @@
-// server.js
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
@@ -18,7 +17,10 @@ const upload = multer({ storage: multer.memoryStorage() });
 // Serve static files (for simplicity, we will serve this within the same file)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Root route: Show the form for uploading the script
+// Middleware to parse form data (for the node command input)
+app.use(express.urlencoded({ extended: true }));
+
+// Root route: Show the form for uploading the script and running Node.js commands
 app.get('/', (req, res) => {
     res.send(`
         <html lang="en">
@@ -43,10 +45,85 @@ app.get('/', (req, res) => {
                     ).join('')}
                 </ul>
                 <h2><a href="/output">View Logs</a></h2>
+
+                <!-- New button to navigate to Node.js commands -->
+                <h2><a href="/node">Run Node.js Command</a></h2>
             </div>
         </body>
         </html>
     `);
+});
+
+// New route to render the Node.js command input form
+app.get('/node', (req, res) => {
+    res.send(`
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Run Node.js Command</title>
+            <link rel="stylesheet" href="/styles.css">
+        </head>
+        <body>
+            <div class="container">
+                <h1>Run Node.js Command</h1>
+                <form action="/node" method="POST">
+                    <label for="command">Node.js Command:</label><br><br>
+                    <textarea name="command" id="command" rows="4" cols="50" required></textarea><br><br>
+                    <button type="submit">Run Command</button>
+                </form>
+                <p><a href="/">Go back</a></p>
+            </div>
+        </body>
+        </html>
+    `);
+});
+
+// Handle the form submission for running Node.js command
+app.post('/node', (req, res) => {
+    const command = req.body.command;
+
+    if (!command) {
+        return res.status(400).send('No command provided.');
+    }
+
+    try {
+        // Run the provided Node.js command using exec
+        exec(command, (error, stdout, stderr) => {
+            let logOutput = '';
+            if (error) {
+                logOutput += `Error executing command: ${error.message}\n`;
+            }
+            if (stderr) {
+                logOutput += `stderr: ${stderr}\n`;
+            }
+            if (stdout) {
+                logOutput += `stdout: ${stdout}\n`;
+            }
+
+            // Display the output of the command
+            res.send(`
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Node.js Command Output</title>
+                    <link rel="stylesheet" href="/styles.css">
+                </head>
+                <body>
+                    <div class="container">
+                        <h1>Command Output</h1>
+                        <pre>${logOutput}</pre>
+                        <p><a href="/node">Run another command</a></p>
+                        <p><a href="/">Go back</a></p>
+                    </div>
+                </body>
+                </html>
+            `);
+        });
+    } catch (error) {
+        res.status(500).send(`Error executing command: ${error.message}`);
+    }
 });
 
 // Handle the uploaded script directly from the memory buffer
@@ -159,25 +236,24 @@ app.get('/output', (req, res) => {
             </html>
         `);
     } else {
-        // Show a list of all available logs if no ID is specified
-        const logs = Object.entries(scriptLogs)
-            .map(([id, log]) => {
-                return `<h3>Script ID: ${id}</h3><pre>${log}</pre><hr>`;
-            })
-            .join('');
-        
+        // Display logs for all scripts
+        let logOutput = '';
+        Object.keys(scriptLogs).forEach(id => {
+            logOutput += `<h3>Script ID: ${id}</h3><pre>${scriptLogs[id]}</pre>`;
+        });
+
         res.send(`
             <html lang="en">
             <head>
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>All Script Logs</title>
+                <title>Script Logs</title>
                 <link rel="stylesheet" href="/styles.css">
             </head>
             <body>
                 <div class="container">
                     <h1>All Script Logs</h1>
-                    ${logs || '<p>No logs available.</p>'}
+                    ${logOutput}
                     <p><a href="/">Go back</a></p>
                 </div>
             </body>
@@ -188,5 +264,5 @@ app.get('/output', (req, res) => {
 
 // Start the server
 app.listen(port, () => {
-    console.log(`Server is running at http://localhost:${port}`);
+    console.log(`Server running at http://localhost:${port}`);
 });
